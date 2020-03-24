@@ -1,5 +1,3 @@
-#!/bin/bash
-
 npm start > /tmp/result.txt &
 
 echo "Launch compilation"
