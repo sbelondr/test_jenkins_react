@@ -1,1 +1,3 @@
-fuser -k 3000/tcp
+#!/bin/bash
+
+pkill node
