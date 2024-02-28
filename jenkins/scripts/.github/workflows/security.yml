@@ -1,0 +1,75 @@
+                
+name: Security Scan
+
+on:
+   push:
+     branches:
+       - main
+
+
+jobs:
+  cve_scan:
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build Local Container
+        uses: docker/build-push-action@v4
+        with:
+         tags: localbuild/testimage:latest
+         push: false
+         load: true
+      - name: KSOC Image Scan
+        uses: ksoclabs/image-scan-action@v0.0.4
+        with:
+         fail_on_severity: high
+         ignore_cves: |
+            CVE-2021-1234
+            CVE-2021-5678
+         image: localbuild/testimage:latest
+   
+
+
+  sast_scan:
+
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Run SAST check
+      uses: IvanKuchin/SAST@v1
+      with:
+          GITHUB_TOKEN: ${{ github.token }}
+      env:
+          LOG_VERBOSE: true
+
+
+
+
+  trivy_scan:
+
+      runs-on: ubuntu-latest
+      steps:
+
+        
+      - name: Run Trivy vulnerability scanner in repo mode
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          ignore-unfixed: false
+          format: 'json'
+          output: 'trivy-results.json'
+          severity: 'UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL'
+          scanners: 'vuln'
+
+      # - name: Upload Trivy scan results to GitHub Security tab
+      #   uses: github/codeql-action/upload-sarif@v3
+      #   with:
+      #     sarif_file: 'trivy-results.sarif'
+
+
+      - name: Upload Trivy scan results 
+        uses: actions/upload-artifact@v2
+        with:
+              name: results-scan
+              path: trivy-results.json
